@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
 #include <aquaman_config.h>
 
 const char* SSID     = WIFI_SSID;
@@ -10,9 +11,13 @@ const uint16_t mqttPort = MQTT_PORT;
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
+
+StaticJsonDocument<200> connectJSON;
+char jsonBuffer[1024];
+String mqttClientId;
+bool serverConnected = false;
+
+long lastReportTimeStamp = 0;
 
 void connectWifi() {
   delay(10);
@@ -52,9 +57,31 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+void createConnectMessage() {
+  connectJSON["deviceId"] = AQUAMAN_CLIENT_ID;
+  connectJSON["slotId"] = "none";
+  connectJSON["timestamp"] = "none";
+  connectJSON["payload"] = "none";
+}
+
+void createMQTTclientId() {
+  mqttClientId = "AquamanClient-";
+  mqttClientId += String(AQUAMAN_CLIENT_ID);
+  mqttClientId += String("-");
+  mqttClientId += String(random(0xffff), HEX);
+}
+
 void initMQTT() {
   mqttClient.setServer(mqttServer, mqttPort);
   mqttClient.setCallback(callback);
+  createConnectMessage();
+  createMQTTclientId();
+}
+
+void sendConnectMessage() {
+  Serial.println("Connecting to Aquaman server...");
+  serializeJson(connectJSON, jsonBuffer);
+  mqttClient.publish(MQTT_TOPIC_OUT, jsonBuffer);
 }
 
 void connectMQTT() {
@@ -62,13 +89,13 @@ void connectMQTT() {
     Serial.print("Connecting to mqtt://");
     Serial.print(mqttServer);
     Serial.print(":");
-    Serial.print(mqttPort);
-    String clientId = "AquamanClient-";
-    clientId += String(AQUAMAN_CLIENT_ID);
-    clientId += String(random(0xffff), HEX);
-    if (mqttClient.connect(clientId.c_str())) {
-      Serial.println("connected");
-      mqttClient.publish(MQTT_TOPIC_OUT, "hello world");
+    Serial.println(mqttPort);
+    
+    Serial.print("MQTT client id: ");
+    Serial.println(mqttClientId);
+    if (mqttClient.connect(mqttClientId.c_str())) {
+      Serial.println("connected to MQTT :)");
+      sendConnectMessage();
       mqttClient.subscribe(MQTT_TOPIC_IN);
     } else {
       Serial.print("failed, rc=");
@@ -96,12 +123,8 @@ void loop() {
   mqttClient.loop();
 
   long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-    ++value;
-    snprintf (msg, 50, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    mqttClient.publish("report", msg);
+  if ((now - lastReportTimeStamp > REPORTING_FEQUENCY) && (!serverConnected)) {
+    lastReportTimeStamp = now;
+    sendConnectMessage();
   }
 }
