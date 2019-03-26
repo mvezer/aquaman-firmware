@@ -102,8 +102,8 @@ void initSlots() {
 }
 
 int getSlotIndex(const char* slotId) {
-  unsigned int slotIndex;
-  while ((slotIndex < SLOTS_COUNT) && strcmp(slots[slotIndex].id, slotId) != 0) { slotIndex++;}
+  int slotIndex = 0;
+  while ((slotIndex < SLOTS_COUNT) && (strcmp(slots[slotIndex].id, slotId))) { slotIndex++; }
   return (slotIndex < SLOTS_COUNT) ? slotIndex : -1;
 }
 
