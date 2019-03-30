@@ -35,6 +35,7 @@ StaticJsonDocument<JSON_BUFFER_SIZE> statusJSON;
 StaticJsonDocument<JSON_BUFFER_SIZE> incomingJSON;
 StaticJsonDocument<JSON_BUFFER_SIZE> stateToggleRequestJSON;
 char jsonBuffer[JSON_BUFFER_SIZE];
+JsonArray slotsList;
 
 char mqttClientId[64];
 bool serverConnected = false;
@@ -60,7 +61,7 @@ void createStatusMessage() {
   statusJSON["deviceId"] = AQUAMAN_CLIENT_ID;
   statusJSON["timestamp"] = getCurrentTimestamp();
   statusJSON["command"] = COMMAND_REPORT_STATUS;
-  for (int i = 0; i < SLOTS_COUNT; i++) {
+  for (unsigned int i = 0; i < SLOTS_COUNT; i++) {
     statusJSON["payload"]["slots"][slots[i].id] = slots[i].state ? STATE_ON : STATE_OFF;
   }
 }
@@ -255,6 +256,10 @@ void createConnectMessage() {
   connectJSON["deviceId"] = AQUAMAN_CLIENT_ID;
   connectJSON["timestamp"] = "none";
   connectJSON["command"] = COMMAND_REQUEST_SYNC_TIME;
+  slotsList = connectJSON.createNestedArray("payload");
+  slotsList.add(SLOT_ID_FILTER);
+  slotsList.add(SLOT_ID_LIGHT);
+  slotsList.add(SLOT_ID_CO2);
 }                  
 
 void createMQTTclientId() {

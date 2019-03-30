@@ -9,7 +9,7 @@
 #define COMMAND_SET_STATUS "set_status"
 #define COMMAND_REPORT_STATUS "report_status"
 #define COMMAND_TOGGLE_REQUEST "toggle_request"
-#define JSON_BUFFER_SIZE 1024
+#define JSON_BUFFER_SIZE 512
 #define SLOTS_COUNT 3
 
 #define SLOT_INDEX_FILTER 0
