@@ -276,16 +276,13 @@ void sendConnectMessage() {
 }
 
 void connectMQTT() {
-  while (!mqttClient.connected()) {
-    Serial.println("[INFO]  connecting to MQTT");
-    if (mqttClient.connect(mqttClientId)) {
-      Serial.println("[INFO]  connected to MQTT");
-      sendConnectMessage();
-      mqttClient.subscribe(MQTT_TOPIC_IN);
-    } else {
-      Serial.printf("[ERROR] MQTT connection failed, rc=%d (retrying in 5 secs)\n", mqttClient.state());
-      delay(5000);
-    }
+  Serial.println("[INFO]  connecting to MQTT");
+  if (mqttClient.connect(mqttClientId)) {
+    Serial.println("[INFO]  connected to MQTT");
+    sendConnectMessage();
+    mqttClient.subscribe(MQTT_TOPIC_IN);
+  } else {
+    Serial.printf("[ERROR] MQTT connection failed, rc=%d (retrying in 5 secs)\n", mqttClient.state());
   }
 }
 

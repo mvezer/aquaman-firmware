@@ -1,6 +1,6 @@
 #define MQTT_SERVER_IP "192.168.178.116"
 #define MQTT_PORT 1883
-#define AQUAMAN_CLIENT_ID "60P"
+#define AQUAMAN_CLIENT_ID "45P"
 #define MQTT_TOPIC_IN "control"
 #define MQTT_TOPIC_OUT "report"
 #define REPORTING_FEQUENCY 5000
